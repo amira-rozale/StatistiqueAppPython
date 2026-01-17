@@ -1,38 +1,59 @@
-from strategy import Moyenne, Mediane, EcartType, Correlation, RegressionLineaire
 from analyzer import Analyseur
 from utils import charger_csv
 from journal import JournalCalculs
+from strategie_factory import StrategieFactory
+
 
 def main():
-    donnees = charger_csv("data.csv")
     analyseur = Analyseur()
-
-    strategies = {
-        1: Moyenne(),
-        2: Mediane(),
-        3: EcartType(),
-        4: Correlation(),
-        5: RegressionLineaire()
-    }
+    journal = JournalCalculs()  # Singleton
 
     while True:
         print("\nChoisissez une méthode statistique (0 pour quitter) :")
-        for k, v in strategies.items():
-            print(f"{k} - {v.get_nom()}")
-        choix = int(input("Votre choix : "))
-        if choix == 0:
-            break
-        if choix not in strategies:
-            print("Choix invalide !")
+        print("1 - Moyenne")
+        print("2 - Médiane")
+        print("3 - Écart-Type")
+        print("4 - Corrélation (2 colonnes)")
+        print("5 - Régression Linéaire (2 colonnes)")
+
+        try:
+            choix = int(input("Votre choix : "))
+        except ValueError:
+            print(" Veuillez entrer un nombre valide.")
             continue
 
-        methode = strategies[choix]
-        analyseur.set_methode(methode)
-        resultat = analyseur.analyser(donnees)
-        print(f"Résultat : {resultat}")
+        if choix == 0:
+            print("Fin du programme.")
+            break
 
-    print("\n Journal des calculs (historique complet) :")
-    JournalCalculs().afficher_journal()
+        # Détermination du nombre de colonnes requis
+        colonnes = 2 if choix in [4, 5] else 1
+
+        try:
+            donnees = charger_csv("data.csv", colonnes=colonnes)
+        except ValueError as e:
+            print(f" Erreur dans le fichier CSV : {e}")
+            continue
+
+        methode = StrategieFactory.creer_strategie(choix)
+
+        if methode is None:
+            print(" Choix invalide.")
+            continue
+
+        analyseur.set_methode(methode)
+
+        try:
+            resultat = analyseur.analyser(donnees)
+        except Exception as e:
+            print(f" Erreur lors du calcul : {e}")
+            continue
+
+        print(f" Résultat ({methode.get_nom()}) : {resultat}")
+
+    # Affichage du journal à la fin
+    print("\n Journal des calculs effectués :")
+    journal.afficher_journal()
 
 
 if __name__ == "__main__":

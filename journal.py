@@ -3,14 +3,14 @@ from datetime import datetime
 class JournalCalculs:
     _instance = None
 
-    def __new__(cls):
+    def __new__(cls, fichier="journal.txt"):
         if cls._instance is None:
             cls._instance = super(JournalCalculs, cls).__new__(cls)
             cls._instance.journal = []
-            cls._instance.fichier = "journal.txt"
-            # Load previous journal
+            cls._instance.fichier = fichier
+            # Charger l’historique
             try:
-                with open(cls._instance.fichier, "r") as f:
+                with open(fichier, "r") as f:
                     cls._instance.journal = [line.strip() for line in f]
             except FileNotFoundError:
                 pass
